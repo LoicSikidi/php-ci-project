@@ -1,0 +1,100 @@
+<project name="test" default="build" basedir=".">
+   <property name="phpunit" value="${basedir}/vendor/bin/phpunit"/>
+   <property name="phpab" value="${basedir}/vendor/bin/phpab"/>
+   <property name="phpcs" value="${basedir}/vendor/bin/phpcs"/>
+
+   <target name="build" depends="prepare,lint,phpcs-ci,phpunit,-check-failure"/>
+
+   <target name="clean"
+         unless="clean.done"
+         description="Cleanup build artifacts">
+    <delete dir="${basedir}/build/api"/>
+    <delete dir="${basedir}/build/coverage"/>
+    <delete dir="${basedir}/build/logs"/>
+    <delete dir="${basedir}/build/pdepend"/>
+    <delete dir="${basedir}/build/phpdox"/>
+    <property name="clean.done" value="true"/>
+   </target>
+
+   <target name="prepare"
+         unless="prepare.done"
+         depends="clean,generate-code"
+         description="Prepare for build">
+    <mkdir dir="${basedir}/build/api"/>
+    <mkdir dir="${basedir}/build/coverage"/>
+    <mkdir dir="${basedir}/build/logs"/>
+    <mkdir dir="${basedir}/build/pdepend"/>
+    <mkdir dir="${basedir}/build/phpdox"/>
+    <property name="prepare.done" value="true"/>
+   </target>
+
+   <target name="generate-code" description="Generate Currency-specific subclasses of Money and autoloader code">
+        <exec executable="${phpab}" taskname="generate-code">
+            <arg value="--output"/>
+            <arg path="src/autoload.php"/>
+            <arg path="src"/>
+        </exec>
+   </target>
+
+   <target name="lint" depends="generate-code">
+        <apply executable="php" failonerror="true" taskname="lint">
+            <arg value="-l"/>
+
+            <fileset dir="${basedir}/src">
+                <include name="**/*.php"/>
+                <modified/>
+            </fileset>
+
+            <fileset dir="${basedir}/tests">
+                <include name="**/*.php"/>
+                <modified/>
+            </fileset>
+        </apply>
+   </target>
+
+   <target name="phpcs"
+            description="Find coding standard violations using PHP_CodeSniffer and print result in text format">
+        <exec executable="${phpcs}" taskname="phpcs">
+            <arg value="--standard=PSR2"/>
+            <arg value="--extensions=php"/>
+            <arg value="--ignore=autoload.php"/>
+            <arg path="${basedir}/src"/>
+            <arg path="${basedir}/tests"/>
+        </exec>
+   </target>
+
+   <target name="phpcs-ci" depends="prepare"
+            description="Find coding standard violations using PHP_CodeSniffer and log result in XML format">
+        <exec executable="${phpcs}" output="/dev/null" taskname="phpcs">
+            <arg value="--report=checkstyle"/>
+            <arg value="--report-file=${basedir}/build/logs/checkstyle.xml"/>
+            <arg value="--standard=PSR2"/>
+            <arg value="--extensions=php"/>
+            <arg value="--ignore=autoload.php"/>
+            <arg path="${basedir}/src"/>
+        </exec>
+   </target>
+
+   <target name="phpunit"
+         unless="phpunit.done"
+         depends="prepare"
+ description="Run unit tests with PHPUnit">
+    <exec executable="${phpunit}" resultproperty="result.phpunit" taskname="phpunit">
+      <arg value="--configuration"/>
+      <arg path="${basedir}/build/phpunit.xml"/>
+    </exec>
+     <property name="phpunit.done" value="true"/>
+   </target>
+
+   <target name="-check-failure"
+     depends="phpunit">
+     <fail message="PHPUnit did not finish successfully">
+     <condition>
+       <not>
+         <equals arg1="${result.phpunit}" arg2="0"/>
+       </not>
+     </condition>
+     </fail>
+   </target>
+
+</project>

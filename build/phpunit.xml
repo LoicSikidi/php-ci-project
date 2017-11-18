@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit>
+    <testsuite name="Email">
+        <directory suffix="Test.php">../tests</directory>
+    </testsuite>
+    <!-- Do not display libraries in tests code -->
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">../src</directory>
+        </whitelist>
+
+        <blacklist>
+            <directory suffix=".php">../vendor</directory>
+        </blacklist>
+
+    </filter>
+    <logging>
+        <log type="coverage-html" target="coverage"/>
+        <log type="coverage-clover" target="logs/clover.xml"/>
+        <log type="coverage-crap4j" target="logs/crap4j.xml"/>
+        <log type="junit" target="logs/junit.xml" logIncompleteSkipped="false"/>
+    </logging>
+</phpunit>
