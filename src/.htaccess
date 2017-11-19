@@ -982,7 +982,7 @@ FileETag None
 	# Request are redirected to index.php
  	RewriteCond %{REQUEST_FILENAME} !-f
  	RewriteCond %{REQUEST_FILENAME} !-d
- 	RewriteRule ^(.*)\?*$ /ife/index.php/$1 [L,QSA]
+ 	RewriteRule ^(.*)\?*$ /php-project-uno/index.php/$1 [L,QSA]
 </IfModule>
 
 # <IfModule mod_rewrite.c>
